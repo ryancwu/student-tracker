@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Electron App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #timer {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello, Electron!</h1>
+    <p>This is a basic Electron application.</p>
+
+    <!-- Text Box -->
+    <input type="text" id="textInput" placeholder="Type something..." />
+
+    <!-- Timer Display -->
+    <div id="timer">Timer: 0 seconds</div>
+
+    <script>
+        let seconds = 0;
+        const timerDisplay = document.getElementById('timer');
+
+        // Timer Function
+        setInterval(() => {
+            seconds++;
+            timerDisplay.textContent = `Timer: ${seconds} seconds`;
+        }, 1000);
+    </script>
+</body>
+</html>

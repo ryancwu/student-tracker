@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "electron": "^32.1.2"
+  },
+  "scripts": {
+    "start": "electron ."
+}
+
+}
