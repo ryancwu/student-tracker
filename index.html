@@ -1,39 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Electron App</title>
+    <title>Student Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
         }
+
         #timer {
             font-size: 24px;
             margin: 20px 0;
         }
+
+        #startStopButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
-    <h1>Hello, Electron!</h1>
-    <p>This is a basic Electron application.</p>
+    <h1 id="courseDisplay">Current Course: None</h1>
+
+    <input type="number" id="courseInput" placeholder="131" min="130" />
+    <button id="updateCourseButton">Update Course</button>
 
     <!-- Text Box -->
-    <input type="text" id="textInput" placeholder="Type something..." />
+    <input type="text" id="textInput" placeholder="Student name" />
 
     <!-- Timer Display -->
-    <div id="timer">Timer: 0 seconds</div>
+    <div id="timer">Timer: 00:00</div>
+
+    <!-- Start/Stop Button -->
+    <button id="startStopButton">Start Timer</button>
 
     <script>
-        let seconds = 0;
-        const timerDisplay = document.getElementById('timer');
+        const { ipcRenderer } = require('electron');
 
-        // Timer Function
-        setInterval(() => {
-            seconds++;
-            timerDisplay.textContent = `Timer: ${seconds} seconds`;
-        }, 1000);
+        // Variable to store current course
+        let currCourse = null;
+
+        /*
+         *   Curr Course
+         */
+        // Listen for the current course value from the main process
+        ipcRenderer.on('curr-course-value', (event, course) => {
+            currCourse = course; // Store current course in a variable
+            document.getElementById('courseDisplay').textContent = `Current Course: ${currCourse}`;
+        });
+
+        // Update the course number when the button is clicked
+        document.getElementById('updateCourseButton').addEventListener('click', () => {
+            const inputCourseNumber = document.getElementById('courseInput').value;
+            if (inputCourseNumber === '') {
+                alert('Please enter a course number.');
+                return;
+            }
+            ipcRenderer.send('update-course', inputCourseNumber);
+        });
+
+        /*
+         *   Timer
+         */
+        let isTimerRunning = false;
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const remainingSeconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        ipcRenderer.on('update-timer', (event, seconds) => {
+            document.getElementById('timer').textContent = `Timer: ${formatTime(seconds)}`;
+        });
+
+        // Checking for start/stop timer
+        document.getElementById('startStopButton').addEventListener('click', () => {
+            // Only send a request to get the current course when starting/stopping the timer
+            if (!isTimerRunning) {
+                if (currCourse === null || currCourse === 'No course selected') {
+                    alert('Please select a course before starting the timer!'); // Alert the user
+                    return; // Exit if no course is selected
+                }
+                ipcRenderer.send('start-timer');
+                document.getElementById('startStopButton').textContent = 'Stop Timer';
+            } else {
+                ipcRenderer.send('stop-timer');
+                document.getElementById('startStopButton').textContent = 'Start Timer';
+            }
+            isTimerRunning = !isTimerRunning;
+        });
+
+        // Request the current course when the application starts
+        ipcRenderer.send('get-curr-course');
     </script>
 </body>
+
 </html>
