@@ -21,6 +21,27 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            padding: 5px 10px;
+        }
     </style>
 </head>
 
@@ -30,14 +51,24 @@
     <input type="number" id="courseInput" placeholder="131" min="130" />
     <button id="updateCourseButton">Update Course</button>
 
-    <!-- Text Box -->
+    <!-- Text Box for Student Name -->
     <input type="text" id="textInput" placeholder="Student name" />
+    <button id="addStudentButton">Add Student</button>
 
-    <!-- Timer Display -->
-    <div id="timer">Timer: 00:00</div>
-
-    <!-- Start/Stop Button -->
-    <button id="startStopButton">Start Timer</button>
+    <!-- Student Table -->
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Current Class</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Student rows will be added here dynamically -->
+        </tbody>
+    </table>
 
     <script>
         const { ipcRenderer } = require('electron');
@@ -65,36 +96,77 @@
         });
 
         /*
-         *   Timer
+         *   New Student
          */
-        let isTimerRunning = false;
+        document.getElementById('addStudentButton').addEventListener('click', () => {
+            const studentName = document.getElementById('textInput').value;
+            if (studentName === '' || currCourse === null) {
+                alert('Please enter a student name and ensure a course is selected.');
+                return;
+            }
+
+            ipcRenderer.send('add-student', studentName, currCourse);
+        });
+
+        ipcRenderer.on('student-added', (event, studentName, course, totalSeconds) => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${studentName}</td>
+                <td>${course}</td>
+                <td id="time-${studentName}">00:00</td>
+                <td>
+                    <button class="startStopButton" data-name="${studentName}">Start Timer</button>
+                </td>
+            `;
+            document.querySelector('#studentTable tbody').appendChild(newRow);
+
+            // Reset input field
+            document.getElementById('textInput').value = '';
+
+            // Initialize timer variables
+            let studentTimerRunning = false;
+            let studentSeconds = 0;
+            let interval; // Declare interval variable here
+
+            const timerDisplay = document.getElementById(`time-${studentName}`);
+
+            // Add event listener for the start/stop button
+            newRow.querySelector('.startStopButton').addEventListener('click', () => {
+                if (!studentTimerRunning) {
+                    // Start the timer
+                    studentTimerRunning = true;
+                    ipcRenderer.send('start-timer', studentName); // Send student name for timer identification
+
+                    newRow.querySelector('.startStopButton').textContent = 'Stop Timer';
+
+                    interval = setInterval(() => {
+                        studentSeconds++;
+                        timerDisplay.textContent = formatTime(studentSeconds);
+                    }, 1000);
+
+                    // Stop all other timers
+                    const allButtons = document.querySelectorAll('.startStopButton');
+                    allButtons.forEach(button => {
+                        if (button !== newRow.querySelector('.startStopButton')) {
+                            button.textContent = 'Start Timer';
+                            ipcRenderer.send('stop-timer', button.dataset.name);
+                        }
+                    });
+                } else {
+                    // Stop the timer
+                    studentTimerRunning = false;
+                    clearInterval(interval); // Clear the interval
+                    newRow.querySelector('.startStopButton').textContent = 'Start Timer';
+                    ipcRenderer.send('stop-timer', studentName);
+                }
+            });
+        });
 
         function formatTime(totalSeconds) {
             const minutes = Math.floor(totalSeconds / 60);
             const remainingSeconds = totalSeconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
         }
-
-        ipcRenderer.on('update-timer', (event, seconds) => {
-            document.getElementById('timer').textContent = `Timer: ${formatTime(seconds)}`;
-        });
-
-        // Checking for start/stop timer
-        document.getElementById('startStopButton').addEventListener('click', () => {
-            // Only send a request to get the current course when starting/stopping the timer
-            if (!isTimerRunning) {
-                if (currCourse === null || currCourse === 'No course selected') {
-                    alert('Please select a course before starting the timer!'); // Alert the user
-                    return; // Exit if no course is selected
-                }
-                ipcRenderer.send('start-timer');
-                document.getElementById('startStopButton').textContent = 'Stop Timer';
-            } else {
-                ipcRenderer.send('stop-timer');
-                document.getElementById('startStopButton').textContent = 'Start Timer';
-            }
-            isTimerRunning = !isTimerRunning;
-        });
 
         // Request the current course when the application starts
         ipcRenderer.send('get-curr-course');

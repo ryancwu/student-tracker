@@ -1,9 +1,12 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 
-let debugMode = false;
+let debugMode = true;
 let timerInterval;
 let seconds = 0;
 let currCourse = null;
+
+// students stored "name": [course, totalSeconds]
+let dataMap = new Map();
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -35,6 +38,16 @@ ipcMain.on('update-course', (event, inputCourseNumber) => {
 
     if (debugMode) {
         console.log('DEBUG: Current course updated to ' + currCourse); // Optional: log for debugging
+    }
+});
+
+// Add new student
+ipcMain.on('add-student', (event, studentName, course) => {
+    dataMap.set(studentName, [course, 0]);
+    event.sender.send('student-added', studentName, course, 0); // Send the student name back to the renderer process
+    if (debugMode) {
+        console.log('DEBUG: ' + studentName + ' in ' + currCourse + ' added'); // Optional: log for debugging
+        console.log('DEBUG: new entry' + dataMap.get(studentName)); // Optional: log for debugging
     }
 });
 
