@@ -8,5 +8,5 @@ npm install electron-packager --save-dev
 ```
 
 1. `npm start` to rebuild/start
-2. npm run pack
+2. (Skip) npm run pack
 3. npm run build
