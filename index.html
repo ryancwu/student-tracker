@@ -5,44 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
 
-        #timer {
-            font-size: 24px;
-            margin: 20px 0;
-        }
-
-        #startStopButton {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        button {
-            padding: 5px 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
@@ -116,7 +80,7 @@
             newRow.innerHTML = `
                 <td>${studentName}</td>
                 <td>${course}</td>
-                <td>${formatTime(totalSeconds)}</td>
+                <td id="time-${studentName}">${formatTime(totalSeconds)}</td>
                 <td>
                     <button class="startStopButton" data-name="${studentName}">Start Timer</button>
                 </td>
@@ -135,12 +99,22 @@
         // Update button text when the timer is started/stopped
         ipcRenderer.on('toggle-timer-text', (event, studentName, runningStatus) => {
             const button = document.querySelector(`.startStopButton[data-name="${studentName}"]`);
+            const timeElement = document.getElementById(`time-${studentName}`);
+            const row = document.getElementById(studentName);
             if (runningStatus) {
                 button.textContent = 'Stop Timer'; // Update to "Stop Timer" if running
+                button.className = 'startStopButton stop'; // Change class to "stop"
+                timeElement.className = 'running'; // Change class to "running"
             } else {
                 button.textContent = 'Start Timer'; // Update to "Start Timer" if stopped
-                document.getElementById(`time-${studentName}`).textContent = 'Stopped'; // Optional: Indicate timer stopped
+                button.className = 'startStopButton start'; // Change class to "start"
+                timeElement.className = 'idle'; // Change class to "running"
             }
+        });
+
+        // Update the timer display when the timer is running
+        ipcRenderer.on('update-timer', (event, studentName, totalSeconds) => {
+            document.getElementById(`time-${studentName}`).textContent = formatTime(totalSeconds);
         });
 
         function formatTime(totalSeconds) {

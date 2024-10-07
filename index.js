@@ -1,8 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 
 let debugMode = true;
-let timerInterval;
-let seconds = 0;
+let timerInterval = null;
 let currCourse = null;
 
 // students stored "name": {course, totalSeconds, isRunning}
@@ -137,6 +136,11 @@ ipcMain.on("start-stop-timer", (event, studentName) => {
       dataMap.get(studentName).isRunning
     );
 
+    // Check if we need to start the global timer
+    if (!timerInterval) {
+      startGlobalTimer(event);
+    }
+
     if (debugMode) {
       console.log(
         `DEBUG: Start timer ${studentName} ${
@@ -146,32 +150,28 @@ ipcMain.on("start-stop-timer", (event, studentName) => {
       );
     }
   }
-
-  //   // Check if we need to start the global interval
-  //   if (!timerInterval) {
-  //     startGlobalTimer(event);
-  //   }
 });
 
-// Start the global interval timer
 function startGlobalTimer(event) {
   timerInterval = setInterval(() => {
-    let activeTimers = 0;
-
-    dataMap.forEach((timerData, studentName) => {
-      if (timerData.isRunning) {
-        timerData.seconds += 1;
-        activeTimers++;
-        event.sender.send("update-timer", studentName, timerData.seconds);
-      }
-    });
-
-    // If no timers are active, clear the interval
-    if (activeTimers === 0) {
-      clearInterval(timerInterval);
-      timerInterval = null;
+    // Check if there's a running timer
+    if (prevRunningTimer) {
+      // Increment seconds for the currently running timer
+      dataMap.get(prevRunningTimer).seconds++;
+      // Send the updated seconds to the renderer
+      event.sender.send(
+        "update-timer",
+        prevRunningTimer,
+        dataMap.get(prevRunningTimer).seconds
+      );
     }
   }, 1000);
+}
+
+// Function to stop the global timer when needed
+function stopGlobalTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
 }
 
 // Create window when app is ready

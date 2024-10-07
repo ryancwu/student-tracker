@@ -1,0 +1,49 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+#timer {
+    font-size: 24px;
+    margin: 20px 0;
+}
+
+#startStopButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+button {
+    padding: 5px 10px;
+}
+
+.stop {
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    border-radius: 1px;
+}
+
+.running {
+    background-color: green;
+    color: white;
+    font-weight: bold;
+}
