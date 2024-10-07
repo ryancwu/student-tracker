@@ -43,7 +43,7 @@ ipcMain.on("update-course", (event, inputCourseNumber) => {
 });
 
 // Add new student
-ipcMain.on("add-student", (event, studentName, course) => {
+ipcMain.on("add-student", (event, studentName, currCourse) => {
   if (dataMap.has(studentName)) {
     event.sender.send(
       "student-exists",
@@ -60,10 +60,8 @@ ipcMain.on("add-student", (event, studentName, course) => {
       isRunning: false,
     });
     event.sender.send(
-      "student-added",
-      studentName,
-      dataMap.get(studentName).course,
-      dataMap.get(studentName).totalSeconds
+      "update-students",
+      dataMap
     ); // Send the student name, course, and seconds back to the renderer process
     if (debugMode) {
       console.log(
@@ -72,11 +70,20 @@ ipcMain.on("add-student", (event, studentName, course) => {
           " in " +
           dataMap.get(studentName).course +
           " added"
-      ); // Optional: log for debugging
+      );
       console.log(
         "DEBUG: New entry " + studentName + ": " + dataMap.get(studentName)
-      ); // Optional: log for debugging
+      );
     }
+  }
+});
+
+// Remove student
+ipcMain.on("delete-student", (event, studentName) => {
+  dataMap.delete(studentName);
+  event.sender.send("update-students", dataMap); // Send the student name back to the renderer process
+  if (debugMode) {
+    console.log("DEBUG: " + studentName + " removed"); // Optional: log for debugging
   }
 });
 

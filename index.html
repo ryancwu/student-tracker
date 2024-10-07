@@ -74,27 +74,43 @@
         });
 
         // Row structured <tr id=studentName> StudentName | course | timer | start/stop button</tr>
-        ipcRenderer.on('student-added', (event, studentName, course, totalSeconds) => {
-            const newRow = document.createElement('tr');
-            newRow.id = studentName;
-            newRow.innerHTML = `
-                <td>${studentName}</td>
-                <td>${course}</td>
-                <td id="time-${studentName}">${formatTime(totalSeconds)}</td>
-                <td>
-                    <button class="startStopButton" data-name="${studentName}">Start Timer</button>
-                </td>
-            `;
-            document.querySelector('#studentTable tbody').appendChild(newRow);
+        ipcRenderer.on('update-students', (event, dataMap) => {
+            const studentTableBody = document.querySelector('#studentTable tbody');
 
-            // Reset input field
-            document.getElementById('textInput').value = '';
+            // Clear existing rows
+            studentTableBody.innerHTML = '';
 
-            // Event listener for the start/stop button
-            newRow.querySelector('.startStopButton').addEventListener('click', () => {
-                ipcRenderer.send('start-stop-timer', newRow.id);
+            // Iterate through each entry in dataMap
+            dataMap.forEach((value, studentName) => {
+                const { course, totalSeconds } = value; // Destructure the value to get course and totalSeconds
+                const newRow = document.createElement('tr');
+                newRow.id = studentName;
+                newRow.innerHTML = `
+            <td>${studentName}</td>
+            <td>${course}</td>
+            <td id="time-${studentName}">${formatTime(totalSeconds)}</td>
+            <td>
+                <button class="startStopButton" data-name="${studentName}">Start Timer</button>
+                <button class="deleteButton" data-name="${studentName}">Delete</button>
+            </td>
+        `;
+                studentTableBody.appendChild(newRow);
+
+                // Event listener for the start/stop button
+                newRow.querySelector('.startStopButton').addEventListener('click', () => {
+                    ipcRenderer.send('start-stop-timer', newRow.id);
+                });
+
+                // Event listener for the delete button
+                newRow.querySelector('.deleteButton').addEventListener('click', () => {
+                    const confirmDelete = confirm(`Are you sure you want to delete '${studentName}?'`);
+                    if (confirmDelete) {
+                        ipcRenderer.send('delete-student', newRow.id);
+                    }
+                });
             });
         });
+
 
         // Update button text when the timer is started/stopped
         ipcRenderer.on('toggle-timer-text', (event, studentName, runningStatus) => {
