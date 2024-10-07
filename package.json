@@ -4,6 +4,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "pack": "electron-packager . YourAppName --platform=win32 --arch=x64 --out=release-builds --overwrite",
     "build": "electron-builder"
   },
   "build": {
