@@ -100,20 +100,23 @@
          */
         document.getElementById('addStudentButton').addEventListener('click', () => {
             const studentName = document.getElementById('textInput').value;
+            console.log("Index " + currCourse);
             if (studentName === '' || currCourse === null) {
-                alert('Please enter a student name and ensure a course is selected.');
+                alert('Please ensure you update your course and enter a student name.');
                 return;
             }
 
             ipcRenderer.send('add-student', studentName, currCourse);
         });
 
+        // Row structured <tr id=studentName> StudentName | course | timer | start/stop button</tr>
         ipcRenderer.on('student-added', (event, studentName, course, totalSeconds) => {
             const newRow = document.createElement('tr');
+            newRow.id = studentName;
             newRow.innerHTML = `
                 <td>${studentName}</td>
                 <td>${course}</td>
-                <td id="time-${studentName}">00:00</td>
+                <td>${formatTime(totalSeconds)}</td>
                 <td>
                     <button class="startStopButton" data-name="${studentName}">Start Timer</button>
                 </td>
@@ -123,43 +126,21 @@
             // Reset input field
             document.getElementById('textInput').value = '';
 
-            // Initialize timer variables
-            let studentTimerRunning = false;
-            let studentSeconds = 0;
-            let interval; // Declare interval variable here
-
-            const timerDisplay = document.getElementById(`time-${studentName}`);
-
-            // Add event listener for the start/stop button
+            // Event listener for the start/stop button
             newRow.querySelector('.startStopButton').addEventListener('click', () => {
-                if (!studentTimerRunning) {
-                    // Start the timer
-                    studentTimerRunning = true;
-                    ipcRenderer.send('start-timer', studentName); // Send student name for timer identification
-
-                    newRow.querySelector('.startStopButton').textContent = 'Stop Timer';
-
-                    interval = setInterval(() => {
-                        studentSeconds++;
-                        timerDisplay.textContent = formatTime(studentSeconds);
-                    }, 1000);
-
-                    // Stop all other timers
-                    const allButtons = document.querySelectorAll('.startStopButton');
-                    allButtons.forEach(button => {
-                        if (button !== newRow.querySelector('.startStopButton')) {
-                            button.textContent = 'Start Timer';
-                            ipcRenderer.send('stop-timer', button.dataset.name);
-                        }
-                    });
-                } else {
-                    // Stop the timer
-                    studentTimerRunning = false;
-                    clearInterval(interval); // Clear the interval
-                    newRow.querySelector('.startStopButton').textContent = 'Start Timer';
-                    ipcRenderer.send('stop-timer', studentName);
-                }
+                ipcRenderer.send('start-stop-timer', newRow.id);
             });
+        });
+
+        // Update button text when the timer is started/stopped
+        ipcRenderer.on('toggle-timer-text', (event, studentName, runningStatus) => {
+            const button = document.querySelector(`.startStopButton[data-name="${studentName}"]`);
+            if (runningStatus) {
+                button.textContent = 'Stop Timer'; // Update to "Stop Timer" if running
+            } else {
+                button.textContent = 'Start Timer'; // Update to "Start Timer" if stopped
+                document.getElementById(`time-${studentName}`).textContent = 'Stopped'; // Optional: Indicate timer stopped
+            }
         });
 
         function formatTime(totalSeconds) {
