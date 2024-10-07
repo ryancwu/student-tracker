@@ -1,6 +1,8 @@
 {
   "name": "student-tracker",
   "version": "1.0.0",
+  "description": "A simple student tracker app",
+  "author": "Ryan Wu",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
