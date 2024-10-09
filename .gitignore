@@ -52,3 +52,6 @@ temp/
 
 # OS generated files
 Icon?
+
+# Storage file
+data.json
