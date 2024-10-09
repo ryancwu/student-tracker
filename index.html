@@ -82,15 +82,21 @@
 
             // Iterate through each entry in dataMap
             dataMap.forEach((value, studentName) => {
-                const { course, totalSeconds } = value; // Destructure the value to get course and totalSeconds
+                let { course, totalSeconds, isRunning } = value; // Destructure the value to get course and totalSeconds
+
+                console.log("studentName " + studentName + " timer " + totalSeconds);
+
+                const timerClass = isRunning ? 'running' : 'idle'; // Determine class based on running status
+                const buttonText = isRunning ? "Stop Timer" : "Start Timer"; // Determine if running
+                const buttonClass = "startStopButton " + (isRunning ? "stop" : "start"); // Determine class based on running status
                 const newRow = document.createElement('tr');
                 newRow.id = studentName;
                 newRow.innerHTML = `
             <td>${studentName}</td>
             <td>${course}</td>
-            <td id="time-${studentName}">${formatTime(totalSeconds)}</td>
+            <td class="${timerClass}" id="time-${studentName}">${formatTime(totalSeconds)}</td>
             <td>
-                <button class="startStopButton" data-name="${studentName}">Start Timer</button>
+                <button class="${buttonClass}" data-name="${studentName}">${buttonText}</button>
                 <button class="deleteButton" data-name="${studentName}">Delete</button>
             </td>
         `;

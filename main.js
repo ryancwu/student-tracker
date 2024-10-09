@@ -59,10 +59,7 @@ ipcMain.on("add-student", (event, studentName, currCourse) => {
       totalSeconds: 0,
       isRunning: false,
     });
-    event.sender.send(
-      "update-students",
-      dataMap
-    ); // Send the student name, course, and seconds back to the renderer process
+    event.sender.send("update-students", dataMap); // Send the student name, course, and totalSeconds back to the renderer process
     if (debugMode) {
       console.log(
         "DEBUG: " +
@@ -74,6 +71,9 @@ ipcMain.on("add-student", (event, studentName, currCourse) => {
       console.log(
         "DEBUG: New entry " + studentName + ": " + dataMap.get(studentName)
       );
+      dataMap.forEach((value, key) => {
+        console.log(`DEBUG: Key: ${key}, Value:`, value);
+      });
     }
   }
 });
@@ -131,7 +131,8 @@ ipcMain.on("start-stop-timer", (event, studentName) => {
 
     // Start the new student timer
     dataMap.set(studentName, {
-      seconds: dataMap.get(studentName)?.seconds || 0,
+      course: dataMap.get(studentName)?.course || currCourse,
+      totalSeconds: dataMap.get(studentName)?.totalSeconds || 0,
       isRunning: true,
     });
     // update current student with running timer
@@ -164,12 +165,12 @@ function startGlobalTimer(event) {
     // Check if there's a running timer
     if (prevRunningTimer) {
       // Increment seconds for the currently running timer
-      dataMap.get(prevRunningTimer).seconds++;
+      dataMap.get(prevRunningTimer).totalSeconds++;
       // Send the updated seconds to the renderer
       event.sender.send(
         "update-timer",
         prevRunningTimer,
-        dataMap.get(prevRunningTimer).seconds
+        dataMap.get(prevRunningTimer).totalSeconds
       );
     }
   }, 1000);
