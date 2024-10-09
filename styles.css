@@ -47,3 +47,11 @@ button {
     color: white;
     font-weight: bold;
 }
+
+sub {
+    position: absolute; /* Position it absolutely */
+    bottom: 10px; /* 10px from the bottom */
+    right: 10px; /* 10px from the right */
+    color: grey; /* Grey color */
+    font-size: 8px; /* Smaller font size */
+}

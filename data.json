@@ -1,0 +1,12 @@
+{
+  "a": {
+    "course": "131",
+    "totalSeconds": 10,
+    "isRunning": true
+  },
+  "b": {
+    "course": "131",
+    "totalSeconds": 3,
+    "isRunning": false
+  }
+}

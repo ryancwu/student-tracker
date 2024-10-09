@@ -34,6 +34,10 @@
         </tbody>
     </table>
 
+    <button id="reloadData">Reload Stored Data</button>
+
+    <sub>Created/Maintained by Ryan Wu</sub>
+
     <script>
         const { ipcRenderer } = require('electron');
 
@@ -74,7 +78,8 @@
         });
 
         // Row structured <tr id=studentName> StudentName | course | timer | start/stop button</tr>
-        ipcRenderer.on('update-students', (event, dataMap) => {
+        ipcRenderer.on('update-students', (event, dataMap, initCall) => {
+
             const studentTableBody = document.querySelector('#studentTable tbody');
 
             // Clear existing rows
@@ -115,6 +120,9 @@
                     }
                 });
             });
+            if (!initCall) {
+                ipcRenderer.send('write-to-file');
+            }
         });
 
 
@@ -137,6 +145,7 @@
         // Update the timer display when the timer is running
         ipcRenderer.on('update-timer', (event, studentName, totalSeconds) => {
             document.getElementById(`time-${studentName}`).textContent = formatTime(totalSeconds);
+            ipcRenderer.send('write-to-file');
         });
 
         function formatTime(totalSeconds) {
@@ -147,6 +156,13 @@
 
         // Request the current course when the application starts
         ipcRenderer.send('get-curr-course');
+
+        /*  
+         * Write to Map 
+         */
+        document.getElementById('reloadData').addEventListener('click', () => {
+            ipcRenderer.send('reload-data');
+        });
     </script>
 </body>
 
