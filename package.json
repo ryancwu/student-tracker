@@ -1,6 +1,6 @@
 {
   "name": "student-tracker",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "A simple student tracker app",
   "author": "Ryan Wu",
   "main": "main.js",
@@ -27,6 +27,7 @@
       "main.js",
       "index.html",
       "data.json",
+      "styles.css",
       "timer256.ico"
     ]
   },
